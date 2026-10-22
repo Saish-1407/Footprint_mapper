@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Map a Company's Footprint</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --card: #1c2333;
+      --border: #30363d;
+      --green: #a3ff00;
+      --green-dark: #2ea043;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --tag-bg: #21262d;
+      --tag-border: #30363d;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .nav-logo .icon {
+      width: 36px; height: 36px;
+      background: var(--green);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+    .nav-links { display: flex; gap: 8px; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 6px 14px;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); background: var(--card); }
+    .nav-links a.active { color: var(--text); background: var(--card); }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, #0d1b2a 0%, #0d1117 60%, #0a1628 100%);
+      padding: 64px 24px 48px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 320px; height: 320px;
+      border: 1px solid rgba(88,166,255,0.08);
+      border-radius: 50%;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 180px; height: 180px;
+      border: 1px solid rgba(88,166,255,0.08);
+      border-radius: 50%;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.78rem;
+      color: var(--green);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.2;
+      max-width: 600px;
+      margin: 0 auto 16px;
+    }
+    .hero p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 480px;
+      margin: 0 auto 36px;
+      line-height: 1.6;
+    }
+    .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--green);
+      color: #0d1117;
+      font-weight: 700;
+      padding: 12px 28px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      font-weight: 600;
+      padding: 12px 28px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .btn-secondary:hover { background: var(--card); }
+
+    /* MAIN CONTENT */
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+
+    /* SEARCH */
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 48px;
+    }
+    .search-bar input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-bar input::placeholder { color: var(--muted); }
+    .search-bar input:focus { border-color: var(--accent); }
+    .search-bar button {
+      background: var(--green);
+      color: #0d1117;
+      font-weight: 700;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+    .search-bar button:hover { opacity: 0.88; }
+
+    /* SECTION TITLE */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .section-header .icon-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--green);
+    }
+
+    /* CARDS GRID */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: border-color 0.2s, background 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .card:hover { border-color: var(--accent); background: var(--card); }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .card-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      background: var(--tag-bg);
+      border: 1px solid var(--tag-border);
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* TWO-COLUMN SECTION */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+    @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+    .info-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .info-card h3 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* SKILL BANNER */
+    .skill-banner {
+      background: var(--green);
+      color: #0d1117;
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 48px;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .skill-banner:hover { opacity: 0.92; }
+    .skill-banner-left .label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+    .skill-banner-left .title {
+      font-size: 1.3rem;
+      font-weight: 800;
+    }
+    .skill-banner .arrow {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    /* TOOLS LIST */
+    .tool-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .tool-link:last-child { border-bottom: none; }
+    .tool-link:hover { color: var(--accent); }
+    .tool-link .tool-name { font-weight: 600; }
+    .tool-link .tool-desc { font-size: 0.8rem; color: var(--muted); }
+    .tool-link-inner { display: flex; flex-direction: column; gap: 2px; }
+
+    /* RESULT PANEL (hidden by default) */
+    #result-panel {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 48px;
+    }
+    #result-panel h2 { font-size: 1.1rem; margin-bottom: 16px; }
+    .result-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      font-size: 0.88rem;
+      font-family: monospace;
+      color: var(--accent);
+    }
+    .result-note {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#">
+    <span class="icon">🔍</span>
+    FootprintMapper
+  </a>
+  <div class="nav-links">
+    <a href="#" class="active">Home</a>
+    <a href="#map">Map</a>
+    <a href="#tools">Tools</a>
+    <a href="#skill">Skill</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">🗺️ OSINT Recon</div>
+  <h1>Map a Company's Footprint</h1>
+  <p>Choose a company you're allowed to look at — your own, or a bug bounty target. No hacking required.</p>
+  <div class="hero-actions">
+    <a href="#map" class="btn-primary">Start Mapping</a>
+    <a href="#tools" class="btn-secondary">View Tools</a>
+  </div>
+</section>
+
+<main>
+
+  <!-- SEARCH BAR -->
+  <div class="search-bar">
+    <input type="text" id="domain-input" placeholder="Enter domain (e.g. example.com)" />
+    <button onclick="handleSearch()">Investigate →</button>
+  </div>
+
+  <!-- RESULT PANEL -->
+  <div id="result-panel">
+    <h2 id="result-title">Results for: <span id="result-domain"></span></h2>
+    <div id="result-items"></div>
+    <p class="result-note">
+      ℹ️ These are sample recon starting points. Use the tools below to perform real enumeration on domains you own or have permission to test.
+    </p>
+  </div>
+
+  <!-- MAP SECTION -->
+  <div id="map">
+    <div class="section-header">
+      <span class="icon-label">🗺️ MAP</span>
+    </div>
+    <div class="cards-grid">
+      <a class="card" href="https://crt.sh/?q=" target="_blank" rel="noopener">
+        <div class="card-title">Domains</div>
+        <div class="card-desc">Identify all registered domains owned or associated with the target company.</div>
+        <div class="tags">
+          <span class="tag">Passive</span>
+          <span class="tag">WHOIS</span>
+          <span class="tag">crt.sh</span>
+        </div>
+      </a>
+      <a class="card" href="https://crt.sh/?q=" target="_blank" rel="noopener">
+        <div class="card-title">Subdomains</div>
+        <div class="card-desc">Enumerate subdomains via certificate transparency logs and DNS records.</div>
+        <div class="tags">
+          <span class="tag">CT Logs</span>
+          <span class="tag">DNS</span>
+          <span class="tag">Passive</span>
+        </div>
+      </a>
+      <a class="card" href="https://www.shodan.io" target="_blank" rel="noopener">
+        <div class="card-title">Exposed Services</div>
+        <div class="card-desc">Discover open ports, exposed databases, and public-facing infrastructure.</div>
+        <div class="tags">
+          <span class="tag">Shodan</span>
+          <span class="tag">Ports</span>
+          <span class="tag">Banners</span>
+        </div>
+      </a>
+      <a class="card" href="https://www.linkedin.com/jobs/search/?keywords=" target="_blank" rel="noopener">
+        <div class="card-title">Public Job Posts</div>
+        <div class="card-desc">Reveal tech stack, internal tools, and team structure through job listings. Enter domain in the search box above for a targeted dork.</div>
+        <div class="tags">
+          <span class="tag">LinkedIn</span>
+          <span class="tag">Tech Stack</span>
+          <span class="tag">Google Dorks</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- TWO COLUMN: MAP TAGS + TOOLS -->
+  <div class="two-col">
+    <div class="info-card">
+      <h3>🗺️ MAP</h3>
+      <div class="tags" style="gap:8px">
+        <span class="tag">Domains</span>
+        <span class="tag">Subdomains</span>
+        <span class="tag">Exposed services</span>
+        <span class="tag">Public job posts</span>
+      </div>
+    </div>
+    <div class="info-card" id="tools">
+      <h3>🧰 TOOLS</h3>
+      <div class="tags" style="gap:8px">
+        <span class="tag">crt.sh</span>
+        <span class="tag">Shodan</span>
+        <span class="tag">Google search operators</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SKILL BANNER -->
+  <a class="skill-banner" href="https://tryhackme.com/path/outline/reconnaissance" target="_blank" rel="noopener" id="skill">
+    <div class="skill-banner-left">
+      <div class="label">SKILL</div>
+      <div class="title">Reconnaissance</div>
+    </div>
+    <div class="arrow">→</div>
+  </a>
+
+  <!-- TOOLS DETAIL -->
+  <div class="section-header">
+    <span class="icon-label">🧰 Tool Directory</span>
+  </div>
+  <div class="info-card" style="margin-bottom:48px">
+    <a class="tool-link" href="https://crt.sh" target="_blank" rel="noopener">
+      <div class="tool-link-inner">
+        <span class="tool-name">crt.sh</span>
+        <span class="tool-desc">Search certificate transparency logs for subdomains</span>
+      </div>
+      <span style="color:var(--muted)">↗</span>
+    </a>
+    <a class="tool-link" href="https://www.shodan.io" target="_blank" rel="noopener">
+      <div class="tool-link-inner">
+        <span class="tool-name">Shodan</span>
+        <span class="tool-desc">Search engine for Internet-connected devices and services</span>
+      </div>
+      <span style="color:var(--muted)">↗</span>
+    </a>
+    <a class="tool-link" href="https://www.exploit-db.com/google-hacking-database" target="_blank" rel="noopener">
+      <div class="tool-link-inner">
+        <span class="tool-name">Google Search Operators (GHDB)</span>
+        <span class="tool-desc">Google dorks for finding exposed files, panels, and sensitive data</span>
+      </div>
+      <span style="color:var(--muted)">↗</span>
+    </a>
+    <a class="tool-link" href="https://who.is" target="_blank" rel="noopener">
+      <div class="tool-link-inner">
+        <span class="tool-name">WHOIS Lookup</span>
+        <span class="tool-desc">Registrar, owner, and registration date for any domain</span>
+      </div>
+      <span style="color:var(--muted)">↗</span>
+    </a>
+    <a class="tool-link" href="https://dnsdumpster.com" target="_blank" rel="noopener">
+      <div class="tool-link-inner">
+        <span class="tool-name">DNSDumpster</span>
+        <span class="tool-desc">DNS recon and research tool — map DNS records visually</span>
+      </div>
+      <span style="color:var(--muted)">↗</span>
+    </a>
+    <a class="tool-link" href="https://hunter.io" target="_blank" rel="noopener">
+      <div class="tool-link-inner">
+        <span class="tool-name">Hunter.io</span>
+        <span class="tool-desc">Find email addresses associated with a domain</span>
+      </div>
+      <span style="color:var(--muted)">↗</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  FootprintMapper — OSINT Recon Tool &nbsp;·&nbsp; Use only on targets you are authorised to test.
+</footer>
+
+<script>
+  function handleSearch() {
+    var input = document.getElementById('domain-input').value.trim();
+    if (!input) return;
+
+    // Strip protocol and path, keep only the domain
+    var domain = input.replace(/https?:\/\//i, '').replace(/\/.*/,'').replace(/\s+/g,'').toLowerCase();
+    if (!domain) return;
+
+    var items = [
+      { url: 'https://crt.sh/?q=%.' + domain, label: 'Certificate Transparency — subdomains via CT logs' },
+      { url: 'https://www.shodan.io/search?query=hostname%3A' + domain, label: 'Shodan — exposed ports & services' },
+      { url: 'https://who.is/whois/' + domain, label: 'WHOIS — registrant, registrar, dates' },
+      { url: 'https://dnsdumpster.com', label: 'DNSDumpster — DNS records map (search manually)' },
+      { url: 'https://www.google.com/search?q=site%3A' + domain, label: 'Google site: — indexed pages' },
+      { url: 'https://www.google.com/search?q=site%3Alinkedin.com+%22' + domain + '%22', label: 'LinkedIn — job posts & employee info' },
+      { url: 'https://hunter.io/domain-search/' + domain, label: 'Hunter.io — email addresses' },
+      { url: 'https://www.google.com/search?q=%22' + domain + '%22+filetype%3Apdf+OR+filetype%3Axls+OR+filetype%3Adocx', label: 'Google dork — exposed documents' },
+    ];
+
+    var panel = document.getElementById('result-panel');
+    var domainSpan = document.getElementById('result-domain');
+    var container = document.getElementById('result-items');
+
+    domainSpan.textContent = domain;
+    container.innerHTML = '';
+
+    items.forEach(function(item) {
+      var div = document.createElement('div');
+      div.className = 'result-item';
+
+      var a = document.createElement('a');
+      a.href = item.url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.style.color = '#58a6ff';
+      a.style.textDecoration = 'none';
+      a.style.wordBreak = 'break-all';
+      a.textContent = '↗ ' + item.url;
+
+      var span = document.createElement('span');
+      span.style.display = 'block';
+      span.style.color = '#8b949e';
+      span.style.fontFamily = 'sans-serif';
+      span.style.fontSize = '0.8rem';
+      span.style.marginTop = '4px';
+      span.textContent = item.label;
+
+      div.appendChild(a);
+      div.appendChild(span);
+      container.appendChild(div);
+    });
+
+    panel.style.display = 'block';
+    // Wait for repaint before scrolling
+    requestAnimationFrame(function() {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  document.getElementById('domain-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleSearch();
+  });
+</script>
+</body>
+</html>
